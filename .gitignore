@@ -1,3 +1,7 @@
+data/
+output/
+exp3.pdf
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
