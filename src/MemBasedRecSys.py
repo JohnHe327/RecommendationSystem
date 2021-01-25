@@ -131,7 +131,7 @@ if __name__ == "__main__":
             # 重新计算关于 test_mid 的相关性向量
             previous_id = test_mid
             vec0 = rank_matrix[test_mid, :].A.flatten()
-            vec0[vec0.nonzero()] = vec0[vec0.nonzero] - avg_movie[test_mid]
+            vec0[vec0.nonzero()] = vec0[vec0.nonzero()] - avg_movie[test_mid]
             sim = np.zeros(MAX_MID)
             for i in range(MAX_MID):
                 # 避免自身相关性排第一
