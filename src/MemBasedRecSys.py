@@ -1,4 +1,5 @@
 import numpy as np
+import time
 
 TRAIN_DATA_PATH = "../data/training.dat"
 TEST_DATA_PATH = "../data/testing.dat"
@@ -49,12 +50,14 @@ def read_test_data(test_file):
     return tasks
 
 if __name__ == "__main__":
+    t_start = time.time()
     with open(TRAIN_DATA_PATH, 'r', encoding='UTF-8') as train_file:
         rank_matrix = read_train_data(train_file)
     with open(TEST_DATA_PATH, 'r', encoding='UTF-8') as test_file:
         tasks = read_test_data(test_file)
     # print("different user count:",len(set([item[0] for item in tasks.keys()])))
     # print("different movie count:",len(set([item[1] for item in tasks.keys()])))
+    t_readfile = time.time()
 
     # 预先计算各平均值
     avg_user = np.mean(rank_matrix, axis=0).A.flatten()
@@ -66,6 +69,7 @@ if __name__ == "__main__":
     assert(type(rank_matrix) == np.matrix)
     assert(rank_matrix.shape == (MAX_MID,MAX_UID))
     assert(rank_matrix.flags['F_CONTIGUOUS'])
+    t_transfer1 = time.time()
     # user based
     for (test_uid, test_mid) in sorted(tasks.keys(), key=lambda d: d[0]):
         # sorted by user
@@ -126,11 +130,13 @@ if __name__ == "__main__":
                 output_file.write(str(int(round(tasks[(uid,mid)]))) + '\n')
                 line = test_file.readline()
 
+    t_userbased = time.time()
     # item 为行向量，rank matrix 转存为行优先
     rank_matrix = np.asanyarray(rank_matrix, order='C')
     assert(type(rank_matrix) == np.matrix)
     assert(rank_matrix.shape == (MAX_MID,MAX_UID))
     assert(rank_matrix.flags['C_CONTIGUOUS'])
+    t_transfer2 = time.time()
 
     # item based
     for (test_uid, test_mid) in sorted(tasks.keys(), key=lambda d: d[1]):
@@ -191,3 +197,11 @@ if __name__ == "__main__":
                 mid = int(line[1])
                 output_file.write(str(int(round(tasks[(uid,mid)]))) + '\n')
                 line = test_file.readline()
+
+    t_itembased = time.time()
+    print('CFC')
+    print('read file time: ', t_readfile - t_start)
+    print('transfer1 time: ', t_transfer1 - t_readfile)
+    print('userbased time: ', t_userbased - t_transfer1)
+    print('transfer2 time: ', t_transfer2 - t_userbased)
+    print('itembased time: ', t_itembased - t_transfer2)
