@@ -20,7 +20,7 @@ def read_train_data(train_file):
     Returns:
         numpy matrix (moive * user)
     """
-    rank_matrix = np.matrix(np.zeros((MAX_MID,MAX_UID), dtype=np.int8, order='F')) # 训练集按用户分组故列优先
+    rank_matrix = np.matrix(np.zeros((MAX_MID,MAX_UID), dtype=np.int8, order='C'))
     line = train_file.readline()
     while line:
         line = line.split(',')
@@ -61,6 +61,11 @@ if __name__ == "__main__":
     avg_movie = np.mean(rank_matrix, axis=1).A.flatten()
 
     previous_id = -1
+    # user 为列向量，rank matrix 转存为列优先
+    rank_matrix = np.asanyarray(rank_matrix, order='F')
+    assert(type(rank_matrix) == np.matrix)
+    assert(rank_matrix.shape == (MAX_MID,MAX_UID))
+    assert(rank_matrix.flags['F_CONTIGUOUS'])
     # user based
     for (test_uid, test_mid) in sorted(tasks.keys(), key=lambda d: d[0]):
         # sorted by user
@@ -120,7 +125,13 @@ if __name__ == "__main__":
                 mid = int(line[1])
                 output_file.write(str(int(round(tasks[(uid,mid)]))) + '\n')
                 line = test_file.readline()
-    # TODO: rank matrix 转行优先 np.reshape
+
+    # item 为行向量，rank matrix 转存为行优先
+    rank_matrix = np.asanyarray(rank_matrix, order='C')
+    assert(type(rank_matrix) == np.matrix)
+    assert(rank_matrix.shape == (MAX_MID,MAX_UID))
+    assert(rank_matrix.flags['C_CONTIGUOUS'])
+
     # item based
     for (test_uid, test_mid) in sorted(tasks.keys(), key=lambda d: d[1]):
         # sorted by movie
