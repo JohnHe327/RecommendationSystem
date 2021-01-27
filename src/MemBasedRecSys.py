@@ -74,7 +74,7 @@ if __name__ == "__main__":
     for (test_uid, test_mid) in sorted(tasks.keys(), key=lambda d: d[0]):
         # sorted by user
         # TODO: remove this to test all
-        if test_uid != 0:
+        if test_uid > 1:
             break
         if test_uid != previous_id:
             # 重新计算关于 test_uid 的相关性向量
@@ -142,7 +142,7 @@ if __name__ == "__main__":
     for (test_uid, test_mid) in sorted(tasks.keys(), key=lambda d: d[1]):
         # sorted by movie
         # TODO: remove this to test all
-        if test_mid != 0:
+        if test_mid > 1:
             break
         if test_mid != previous_id:
             # 重新计算关于 test_mid 的相关性向量
