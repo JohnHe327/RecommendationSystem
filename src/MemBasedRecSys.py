@@ -45,7 +45,7 @@ def read_test_data(test_file):
         line = line.split(',')
         uid = int(line[0])
         mid = int(line[1])
-        tasks[(uid,mid)] = 0
+        tasks[(uid,mid)] = [0, 0]
         line = test_file.readline()
     return tasks
 
@@ -118,17 +118,7 @@ if __name__ == "__main__":
             pred = avg_user[test_uid]
         # 存储
         # print('(', test_uid, ',', test_mid, '):', pred)
-        tasks[(test_uid,test_mid)] = pred
-    # 输出文件
-    with open(TEST_DATA_PATH, 'r', encoding='UTF-8') as test_file:
-        with open(USER_BASED_OUTPUT_PATH, 'w') as output_file:
-            line = test_file.readline()
-            while line:
-                line = line.split(',')
-                uid = int(line[0])
-                mid = int(line[1])
-                output_file.write(str(int(round(tasks[(uid,mid)]))) + '\n')
-                line = test_file.readline()
+        tasks[(test_uid,test_mid)][0] = pred
 
     t_userbased = time.time()
     # item 为行向量，rank matrix 转存为行优先
@@ -186,22 +176,34 @@ if __name__ == "__main__":
             pred = avg_movie[test_mid]
         # 存储
         # print('(', test_uid, ',', test_mid, '):', pred)
-        tasks[(test_uid,test_mid)] = alpha*tasks[(test_uid,test_mid)] + beta*pred
+        tasks[(test_uid,test_mid)][1] = pred
+    t_itembased = time.time()
+    
     # 输出文件
     with open(TEST_DATA_PATH, 'r', encoding='UTF-8') as test_file:
-        with open(MEM_BASED_OUTPUT_PATH, 'w') as output_file:
-            line = test_file.readline()
-            while line:
-                line = line.split(',')
-                uid = int(line[0])
-                mid = int(line[1])
-                output_file.write(str(int(round(tasks[(uid,mid)]))) + '\n')
-                line = test_file.readline()
+        with open(USER_BASED_OUTPUT_PATH, 'w') as user_file:
+            with open(ITEM_BASED_OUTPUT_PATH, 'w') as item_file:
+                with open(MEM_BASED_OUTPUT_PATH, 'w') as mem_file:
+                    line = test_file.readline()
+                    while line:
+                        line = line.split(',')
+                        uid = int(line[0])
+                        mid = int(line[1])
+                        pred_user = tasks[(uid,mid)][0]
+                        pred_item = tasks[(uid,mid)][1]
+                        pred_mem = int(round(alpha*pred_user + beta*pred_item))
+                        pred_user = int(round(pred_user))
+                        pred_item = int(round(pred_item))
+                        user_file.write(str(pred_user) + '\n')
+                        item_file.write(str(pred_item) + '\n')
+                        mem_file.write(str(pred_mem) + '\n')
+                        line = test_file.readline()
+    t_output = time.time()
 
-    t_itembased = time.time()
     print('CFC')
     print('read file time: ', t_readfile - t_start)
     print('transfer1 time: ', t_transfer1 - t_readfile)
     print('userbased time: ', t_userbased - t_transfer1)
     print('transfer2 time: ', t_transfer2 - t_userbased)
     print('itembased time: ', t_itembased - t_transfer2)
+    print('output time:', t_output - t_itembased)
